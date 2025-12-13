@@ -47,6 +47,7 @@ build() {
     
     # 编译
     go build -trimpath \
+        -tags "with_gvisor" \
         -ldflags "-s -w -X 'github.com/metacubex/mihomo/constant.Version=$VERSION' -X 'github.com/metacubex/mihomo/constant.BuildTime=$BUILD_TIME'" \
         -o "$OUTPUT_DIR/$OUTPUT" \
         .

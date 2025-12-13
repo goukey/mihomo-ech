@@ -61,8 +61,10 @@ func NewClient(config Config, dialFn DialFn) (*Client, error) {
 
 func (c *Client) DialContext(ctx context.Context, address string) (net.Conn, error) {
 	// 构建 WebSocket URL
+	// 注意: 这里使用 ws 协议而不是 wss, 因为 dialer.NetDialContext 已经返回了安全连接(TLS/ECH)
+	// 如果这里用 wss, gorilla 会试图再包裹一层 TLS, 导致错误
 	u := url.URL{
-		Scheme: "wss",
+		Scheme: "ws",
 		Host:   net.JoinHostPort(c.config.Server, strconv.Itoa(c.config.Port)),
 		Path:   c.config.WSPath,
 	}
