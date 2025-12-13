@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"net/http"
 	"net/url"
 	"strconv"
 	"time"
@@ -77,7 +78,11 @@ func (c *Client) DialContext(ctx context.Context, address string) (net.Conn, err
 	}
 
 	// 建立 WebSocket 连接
-	conn, _, err := c.dialer.DialContext(ctx, u.String(), nil)
+	// 显式设置 Host Header, 这对 CDN (Cloudflare) 非常重要
+	headers := http.Header{}
+	headers.Set("Host", c.config.Server)
+
+	conn, _, err := c.dialer.DialContext(ctx, u.String(), headers)
 	if err != nil {
 		return nil, fmt.Errorf("websocket dial failed: %w", err)
 	}
