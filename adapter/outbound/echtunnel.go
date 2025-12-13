@@ -79,20 +79,6 @@ func (e *ECHTunnel) Close() error {
 func NewECHTunnel(option ECHTunnelOption) (*ECHTunnel, error) {
 	addr := net.JoinHostPort(option.Server, strconv.Itoa(option.Port))
 
-	client, err := echtunnel.NewClient(echtunnel.Config{
-		Server:    option.Server,
-		Port:      option.Port,
-		WSPath:    option.WSPath,
-		Token:     option.Token,
-		ECHDomain: option.ECHDomain,
-		DNS:       option.DNS,
-		IP:        option.IP,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
 	e := &ECHTunnel{
 		Base: &Base{
 			name:   option.Name,
@@ -107,9 +93,26 @@ func NewECHTunnel(option ECHTunnelOption) (*ECHTunnel, error) {
 			prefer: option.IPVersion,
 		},
 		option: &option,
-		client: client,
 	}
+
+	// 1. 先创建安全拨号器
 	e.dialer = option.NewDialer(e.DialOptions())
 
+	// 2. 将拨号器传给客户端
+	client, err := echtunnel.NewClient(echtunnel.Config{
+		Server:    option.Server,
+		Port:      option.Port,
+		WSPath:    option.WSPath,
+		Token:     option.Token,
+		ECHDomain: option.ECHDomain,
+		DNS:       option.DNS,
+		IP:        option.IP,
+	}, e.dialer.DialContext)
+
+	if err != nil {
+		return nil, err
+	}
+
+	e.client = client
 	return e, nil
 }

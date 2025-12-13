@@ -22,12 +22,15 @@ type Config struct {
 	IP        string
 }
 
+// 定义拨号函数类型
+type DialFn func(ctx context.Context, network, address string) (net.Conn, error)
+
 type Client struct {
 	config Config
 	dialer *websocket.Dialer
 }
 
-func NewClient(config Config) (*Client, error) {
+func NewClient(config Config, dialFn DialFn) (*Client, error) {
 	// 设置默认值
 	if config.WSPath == "" {
 		config.WSPath = "/tunnel"
@@ -47,6 +50,7 @@ func NewClient(config Config) (*Client, error) {
 	dialer := &websocket.Dialer{
 		TLSClientConfig:  tlsConfig,
 		HandshakeTimeout: 30 * time.Second,
+		NetDialContext:   dialFn, // 使用传入的安全拨号器
 	}
 
 	return &Client{
